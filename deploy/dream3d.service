@@ -1,0 +1,38 @@
+# /etc/systemd/system/dream3d.service
+# La app vive en el disco del sistema (/opt/dream3d) para no depender de sdb1, que no está en fstab.
+[Unit]
+Description=Tienda dream3d.es
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dream3d
+Group=dream3d
+WorkingDirectory=/opt/dream3d
+ExecStart=/usr/bin/node server.js
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+Environment=SITE_URL=https://dream3d.es
+# SMTP, ADMIN_PASS, etc. van en /opt/dream3d/.env (permisos 600)
+Restart=always
+RestartSec=3
+# Hardening: the app only writes to data/ and public/uploads/ (both must exist before the first start)
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/dream3d/data /opt/dream3d/public/uploads
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
