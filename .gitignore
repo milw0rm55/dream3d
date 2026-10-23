@@ -1,0 +1,26 @@
+# dependencias y secretos
+node_modules/
+.env
+
+# datos locales: bases de datos, subidas y pedidos (no van al repositorio)
+data/
+public/uploads/
+*.db
+*.db-*
+*.tgz
+
+# herramientas de IA y skills instaladas (no son parte del proyecto)
+.agents/
+.claude/
+skills-lock.json
+CLAUDE.md
+AGENTS.md
+strix_runs/
+
+# notas personales y textos de uso interno
+textos-nosotros.txt
+
+# sistema
+.DS_Store
+Thumbs.db
+*.log
