@@ -1,6 +1,7 @@
 // HTTP smoke test of the production-facing routes, against an in-memory database
 process.env.DB_FILE = ':memory:';
 process.env.SITE_URL = 'https://dream3d.es';
+process.env.ADMIN_PASS = 'prueba-admin-123';
 
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
@@ -11,7 +12,7 @@ mailer.transport = { sendMail: async m => { emails.push(m); } };
 const settle = () => new Promise(r => setTimeout(r, 50)); // order emails are sent without blocking the response
 
 let server, base;
-const ADMIN = { 'x-admin-pass': 'forma3d-admin', 'Content-Type': 'application/json' };
+const ADMIN = { 'x-admin-pass': 'prueba-admin-123', 'Content-Type': 'application/json' };
 const get = path => fetch(base + path, { redirect: 'manual' });
 const post = (path, body, headers = { 'Content-Type': 'application/json' }) =>
   fetch(base + path, { method: 'POST', headers, body: JSON.stringify(body) });
@@ -170,4 +171,21 @@ test('admin and self-hosted assets are served', async () => {
   assert.equal((await get('/fonts/work-sans-latin-400-normal.woff2')).status, 200);
   assert.equal((await get('/vendor/three/build/three.module.min.js')).status, 200);
   assert.equal((await get('/vendor/chart.js/chart.umd.js')).status, 200);
+});
+
+test('public product list hides unpublished products', async () => {
+  const list = await (await get('/api/products')).json();
+  assert.ok(list.some(p => p.id === 1));
+  assert.ok(!list.some(p => p.id === 2), 'product 2 is inactive');
+});
+
+// keep last: it spends the wrong-password budget of this IP
+test('admin login: wrong passwords are limited, the right one is never blocked', async () => {
+  const wrong = { 'x-admin-pass': 'adivina', 'Content-Type': 'application/json' };
+  // earlier tests in this file already used some of this IP's budget, so count tries until the 429
+  let status, tries = 0;
+  do { status = (await fetch(base + '/api/admin/products', { headers: wrong })).status; tries++; } while (status === 401 && tries < 20);
+  assert.equal(status, 429);
+  assert.ok(tries <= 10, `limit after ${tries} wrong tries`);
+  assert.equal((await fetch(base + '/api/admin/products', { headers: ADMIN })).status, 200);
 });
