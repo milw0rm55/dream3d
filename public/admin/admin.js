@@ -189,7 +189,7 @@ const Admin = (() => {
         <td>${p.id}</td>
         <td><div class="row-name">${thumb}<div><strong>${esc(p.name)}</strong>
           <div class="row-badges">${photos ? `<span>${photos}/4 fotos</span>` : ''}${p.media && p.media.stl ? '<span>STL</span>' : ''}</div></div></div></td>
-        <td><span class="tag-pill">${p.tag}</span></td>
+        <td><span class="tag-pill">${esc(p.tag)}</span></td>
         <td>${p.price > 0 ? money(p.price) : '<em>A consultar</em>'}</td>
         <td>${p.stock}</td>
         <td class="notes-cell">${p.notes ? `<span class="notes-text" title="${esc(p.notes)}">${esc(p.notes.slice(0,40))}${p.notes.length>40?'…':''}</span>` : '<span style="color:var(--border)">—</span>'}</td>
