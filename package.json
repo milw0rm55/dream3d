@@ -1,0 +1,22 @@
+{
+  "name": "forma3d",
+  "version": "1.0.0",
+  "description": "Forma3D — tienda de impresión 3D",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js --dev",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "dependencies": {
+    "@fontsource/work-sans": "^5.3.0",
+    "chart.js": "^4.4.0",
+    "express": "^4.19.2",
+    "nodemailer": "^10.2.1",
+    "stripe": "^23.0.1",
+    "three": "^0.170.0"
+  }
+}

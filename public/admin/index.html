@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="es-ES">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · dream3d</title>
+<script src="/js/theme-mode.js"></script>
+<link rel="stylesheet" href="/css/fonts.css">
+<link rel="stylesheet" href="/theme.css">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/admin/admin.css">
+<script type="importmap">
+{ "imports": {
+  "three": "/vendor/three/build/three.module.min.js",
+  "three/addons/": "/vendor/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+
+<div id="admin-login" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">dream3d <em>admin</em></div>
+    <p class="login-sub">Acceso al panel de administración</p>
+    <div class="form-group"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')Admin.login()"></div>
+    <button class="btn-primary" onclick="Admin.login()">Entrar</button>
+    <p id="loginErr" class="login-err"></p>
+  </div>
+</div>
+
+<div id="admin-app" class="admin-wrap" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-logo" onclick="Admin.nav('dashboard')">dream3d</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-section="dashboard" onclick="Admin.nav('dashboard')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-section="products" onclick="Admin.nav('products')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Productos
+      </button>
+      <button class="nav-item" data-section="orders" onclick="Admin.nav('orders')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Pedidos
+      </button>
+      <button class="nav-item" data-section="reviews" onclick="Admin.nav('reviews')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/></svg>
+        Reseñas <span class="nav-count" id="reviewsCount" hidden></span>
+      </button>
+      <button class="nav-item" data-section="site" onclick="Admin.nav('site')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 13h6M7 16h10"/></svg>
+        Web
+      </button>
+      <button class="nav-item" data-section="messages" onclick="Admin.nav('messages')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+        Mensajes <span class="nav-count" id="messagesCount" hidden></span>
+      </button>
+    </nav>
+    <button class="theme-btn" type="button" data-theme-toggle><span class="theme-icon"></span><span class="theme-text">Tema</span></button>
+    <button class="logout-btn" onclick="Admin.logout()">Cerrar sesión</button>
+  </aside>
+
+  <main class="main-content">
+    <!-- DASHBOARD -->
+    <section id="section-dashboard" class="section active">
+      <h1>Dashboard</h1>
+      <div class="stat-row" id="statRow"></div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Ingresos semanales</h3>
+          <canvas id="chartWeekly" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Pedidos por estado</h3>
+          <canvas id="chartStatus" height="220"></canvas>
+        </div>
+        <div class="chart-card chart-wide">
+          <h3>Visitas y clics en WhatsApp · últimos 30 días</h3>
+          <p class="stat-sub" id="statsTotals"></p>
+          <canvas id="chartVisits" height="200"></canvas>
+          <div class="stats-lists" id="statsLists"></div>
+        </div>
+        <div class="chart-card chart-wide">
+          <h3>Ingresos por categoría</h3>
+          <canvas id="chartTags" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section id="section-products" class="section">
+      <div class="section-header">
+        <h1>Productos</h1>
+        <button class="btn-yellow" onclick="Admin.openProductModal()">+ Nuevo producto</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="productsTable">
+          <thead><tr><th>#</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Notas</th><th>Activo</th><th>Acciones</th></tr></thead>
+          <tbody id="productsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ORDERS -->
+    <section id="section-orders" class="section">
+      <div class="section-header">
+        <h1>Pedidos</h1>
+        <div class="filter-row">
+          <button class="filter-btn active" data-filter="all" onclick="Admin.filterOrders('all',this)">Todos</button>
+          <button class="filter-btn" data-filter="pendiente"  onclick="Admin.filterOrders('pendiente',this)">Pendientes</button>
+          <button class="filter-btn" data-filter="preparando" onclick="Admin.filterOrders('preparando',this)">Preparando</button>
+          <button class="filter-btn" data-filter="en-camino"  onclick="Admin.filterOrders('en-camino',this)">En camino</button>
+          <button class="filter-btn" data-filter="entregado"  onclick="Admin.filterOrders('entregado',this)">Entregados</button>
+        </div>
+      </div>
+      <details class="new-order" id="newOrder">
+        <summary class="btn-yellow">+ Nuevo pedido (acordado por WhatsApp)</summary>
+        <form class="new-order-form" onsubmit="Admin.createOrder(event)">
+          <p class="panel-hint">Para encargos y presupuestos: se crea el pedido y obtienes un enlace para que el cliente pague con tarjeta o transferencia.</p>
+          <div class="site-group">
+            <label class="site-field"><span>Nombre del cliente</span><input name="name" required maxlength="80"></label>
+            <label class="site-field"><span>WhatsApp / teléfono</span><input name="phone" maxlength="30" placeholder="34612345678"></label>
+            <label class="site-field"><span>Correo (opcional)</span><input name="email" type="email" maxlength="120"></label>
+            <label class="site-field wide"><span>Concepto</span><input name="description" required maxlength="200" placeholder="Figura personalizada del logo, 12 cm, PLA rojo"></label>
+            <label class="site-field"><span>Importe (€)</span><input name="amount" type="number" min="0.5" step="0.01" required></label>
+            <label class="site-field"><span>Envío (€)</span><input name="shipping" type="number" min="0" step="0.01" value="0"></label>
+            <label class="site-field wide"><span>Notas internas</span><textarea name="notes" rows="2" maxlength="500"></textarea></label>
+          </div>
+          <button class="btn-yellow" type="submit">Crear pedido</button>
+          <p class="modal-status" id="newOrderStatus" role="status"></p>
+        </form>
+      </details>
+      <div id="ordersList"></div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section id="section-reviews" class="section">
+      <div class="section-header">
+        <h1>Reseñas</h1>
+        <div class="filter-row">
+          <button class="filter-btn active" data-rfilter="pending" onclick="Admin.filterReviews('pending',this)">Pendientes</button>
+          <button class="filter-btn" data-rfilter="approved" onclick="Admin.filterReviews('approved',this)">Publicadas</button>
+          <button class="filter-btn" data-rfilter="all" onclick="Admin.filterReviews('all',this)">Todas</button>
+        </div>
+      </div>
+      <p class="panel-hint">Las reseñas nuevas no se muestran en la tienda hasta que las apruebas. Revisa que no incluyan datos personales.</p>
+      <div id="reviewsList"></div>
+    </section>
+
+    <!-- SITE TEXTS / CONTACT / LEGAL / SEO -->
+    <section id="section-site" class="section">
+      <div class="section-header">
+        <h1>Web</h1>
+        <button class="btn-yellow" onclick="Admin.saveSite()" id="siteSave">Guardar cambios</button>
+      </div>
+      <p class="mail-status warn" id="siteWarnings" hidden></p>
+      <p class="panel-hint">Los cambios se ven en la web al recargarla. Deja un campo vacío para ocultarlo (redes sociales, testimonios).</p>
+      <div id="siteForm"></div>
+      <p class="modal-status" id="siteStatus" role="status"></p>
+    </section>
+
+    <!-- MESSAGES -->
+    <section id="section-messages" class="section">
+      <div class="section-header"><h1>Mensajes</h1></div>
+      <p class="mail-status" id="mailStatus"></p>
+      <div id="messagesList"></div>
+    </section>
+  </main>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div id="productModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)Admin.closeModal()">
+  <div class="modal-card modal-wide">
+    <div class="modal-header">
+      <h2 id="modalTitle">Nuevo producto</h2>
+      <button class="modal-close" onclick="Admin.closeModal()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-tabs" role="tablist">
+      <button class="modal-tab active" data-tab="data" onclick="Admin.modalTab('data')">Datos</button>
+      <button class="modal-tab" data-tab="media" onclick="Admin.modalTab('media')">Fotos y modelo 3D</button>
+      <button class="modal-tab" data-tab="price" onclick="Admin.modalTab('price')">Precio sugerido</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="modalId">
+
+      <!-- MEDIA -->
+      <div class="modal-panel" id="panel-media">
+        <p class="panel-hint">Una foto por lado, con el mismo encuadre, la misma distancia y el mismo fondo. Gira la figura un cuarto de vuelta entre foto y foto: <strong>derecha</strong> es el lado que ves a tu derecha cuando la miras de frente. Las fotos se reducen automáticamente a 1600 px antes de subirse.</p>
+        <div class="media-grid" id="mediaGrid"></div>
+        <div class="preview-box">
+          <div class="stl-head">
+            <div>
+              <h3>Vista previa del giro</h3>
+              <p class="panel-hint" style="margin:0">Así se verá en la tienda: pasa el ratón por la tarjeta y arrastra la ficha. Si aún no has subido las 4 fotos, se muestran fotos de ejemplo.</p>
+            </div>
+            <a class="btn-sm" href="/admin/preview.html" target="_blank" rel="noopener">Abrir ejemplo en otra pestaña</a>
+          </div>
+          <iframe id="turntablePreview" class="preview-frame" src="/admin/preview.html" title="Vista previa del efecto de giro"></iframe>
+        </div>
+        <div class="stl-box">
+          <div class="stl-head">
+            <div>
+              <h3>Modelo STL</h3>
+              <p class="panel-hint" style="margin:0">Se muestra en la tienda con un visor 3D y sirve para estimar el peso.</p>
+            </div>
+            <div class="stl-actions">
+              <label class="btn-ghost btn-file">Elegir STL<input type="file" id="stlInput" accept=".stl,model/stl,application/sla" hidden></label>
+              <button class="btn-sm danger" id="stlRemove" onclick="Admin.removeStl()" hidden>Quitar</button>
+            </div>
+          </div>
+          <div class="stl-preview" id="stlPreview"><p>Sin modelo</p></div>
+          <p class="stl-info" id="stlInfo"></p>
+        </div>
+      </div>
+
+      <!-- PRICE CALCULATOR -->
+      <div class="modal-panel" id="panel-price">
+        <div class="calc">
+          <div class="calc-inputs" id="calcInputs">
+            <fieldset>
+              <legend>Impresión</legend>
+              <label class="btn-ghost btn-file calc-gcode">Cargar gcode (tiempo y peso)<input type="file" id="gcodeInput" accept=".gcode,.gco,.g,.bgcode" hidden></label>
+              <p class="calc-note" id="gcodeInfo"></p>
+              <div class="calc-row">
+                <label>Tiempo <span class="pair"><input type="number" data-k="hours" min="0" step="1"> h <input type="number" data-k="minutes" min="0" max="59" step="1"> min</span></label>
+                <label>Peso del filamento <span class="unit"><input type="number" data-k="weightG" min="0" step="0.1"> g</span></label>
+              </div>
+              <div class="calc-row" id="stlEstimateRow" hidden>
+                <label>Relleno <span class="unit"><input type="number" data-k="infillPct" min="0" max="100" step="5"> %</span></label>
+                <button class="btn-sm" type="button" onclick="Admin.estimateWeight()">Estimar peso desde el STL</button>
+              </div>
+              <p class="calc-note" id="stlEstimateInfo"></p>
+            </fieldset>
+            <fieldset>
+              <legend>Filamento</legend>
+              <div class="calc-row">
+                <label>Material <select data-k="material" id="calcMaterial"></select></label>
+                <label>Precio bobina <span class="unit"><input type="number" data-k="spoolPrice" min="0" step="0.01"> €</span></label>
+                <label>Peso bobina <span class="unit"><input type="number" data-k="spoolWeight" min="1"> g</span></label>
+                <label>Desperdicio <span class="unit"><input type="number" data-k="wastePct" min="0" max="200"> %</span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Electricidad</legend>
+              <div class="calc-row">
+                <label>Consumo <span class="unit"><input type="number" data-k="powerW" min="0"> W</span></label>
+                <label>Precio <span class="unit"><input type="number" data-k="kwhPrice" min="0" step="0.001"> €/kWh</span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Mano de obra</legend>
+              <div class="calc-row">
+                <label>Preparación <span class="unit"><input type="number" data-k="prepMin" min="0"> min</span></label>
+                <label>Postprocesado <span class="unit"><input type="number" data-k="postMin" min="0"> min</span></label>
+                <label>Precio por hora <span class="unit"><input type="number" data-k="laborRate" min="0" step="0.5"> €</span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Máquina</legend>
+              <div class="calc-row">
+                <label>Coste de la impresora <span class="unit"><input type="number" data-k="printerCost" min="0"> €</span></label>
+                <label>Amortización <span class="unit"><input type="number" data-k="paybackYears" min="0.5" step="0.5"> años</span></label>
+                <label>Uso diario <span class="unit"><input type="number" data-k="dailyHours" min="0.5" max="24" step="0.5"> h</span></label>
+                <label>Reparaciones <span class="unit"><input type="number" data-k="repairPct" min="0"> %/año</span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Otros costes</legend>
+              <div id="otherCosts"></div>
+              <button class="btn-sm" type="button" onclick="Admin.addOtherCost()">+ Añadir línea</button>
+            </fieldset>
+            <fieldset>
+              <legend>Envío gratis y cobro con tarjeta</legend>
+              <div class="calc-row">
+                <label>Coste del envío <span class="unit"><input type="number" data-k="shipCost" min="0" step="0.01"> €</span></label>
+                <label>Comisión tarjeta <span class="unit"><input type="number" data-k="cardFeePct" min="0" max="20" step="0.01"> %</span></label>
+                <label>+ fijo por cobro <span class="unit"><input type="number" data-k="cardFeeFixed" min="0" step="0.01"> €</span></label>
+              </div>
+              <p class="calc-note">El precio incluye el envío para poder anunciar «envío gratis». Si un pedido lleva varias figuras, el envío se cubre más de una vez: ese extra es margen.</p>
+            </fieldset>
+            <fieldset>
+              <legend>Venta</legend>
+              <div class="calc-row">
+                <label>Ganancia <span class="unit"><input type="number" data-k="profitPct" min="0"> %</span></label>
+                <label>IVA <span class="unit"><input type="number" data-k="vatPct" min="0"> %</span></label>
+                <label>Redondear a <span class="unit"><input type="number" data-k="roundTo" min="0.01" step="0.01"> €</span></label>
+              </div>
+            </fieldset>
+            <button class="btn-sm" type="button" onclick="Admin.saveCalcDefaults()" id="calcDefaultsBtn">Guardar estos valores como predeterminados</button>
+          </div>
+
+          <aside class="calc-result" id="calcResult"></aside>
+        </div>
+      </div>
+
+      <!-- DATA -->
+      <div class="modal-panel active" id="panel-data">
+      <div class="modal-grid">
+        <div class="form-group"><label>Nombre</label><input type="text" id="mName" placeholder="Nombre del producto"></div>
+        <div class="form-group"><label>Categoría</label>
+          <select id="mTag">
+            <option>Videojuegos</option><option>Regalos</option><option>Anime &amp; Manga</option><option>Custom</option><option>Colección</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Precio (€)</label><input type="number" id="mPrice" placeholder="0 = a consultar" min="0" step="0.01"></div>
+        <div class="form-group"><label>Stock</label><input type="number" id="mStock" placeholder="0" min="0"></div>
+        <div class="form-group full"><label>Descripción</label><textarea id="mDesc" rows="3" placeholder="Descripción corta del producto"></textarea></div>
+        <div class="form-group full"><label>Notas internas</label><textarea id="mNotes" rows="2" placeholder="Notas solo visibles en el admin (stock bajo, pendiente de filamento, etc.)"></textarea></div>
+      </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="modal-status" id="modalStatus" role="status"></p>
+      <button class="btn-ghost" onclick="Admin.closeModal()">Cancelar</button>
+      <button class="btn-yellow" id="modalSave" onclick="Admin.saveProduct()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/vendor/chart.js/chart.umd.js"></script>
+<script src="/admin/pricing-calc.js"></script>
+<script src="/admin/admin.js"></script>
+</body>
+</html>

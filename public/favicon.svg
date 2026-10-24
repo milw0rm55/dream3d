@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .bg { fill: #0A0A0A; } .fg { stroke: #FFFFFF; }
+    @media (prefers-color-scheme: dark) { .bg { fill: #EDECE7; } .fg { stroke: #0F0F0E; } }
+  </style>
+  <rect class="bg" width="64" height="64" rx="14"/>
+  <g class="fg" fill="none" stroke-width="4" stroke-linejoin="round">
+    <path d="M32 12 15 22v20l17 10 17-10V22z"/>
+    <path d="M15 22l17 10 17-10M32 32v20"/>
+  </g>
+</svg>
