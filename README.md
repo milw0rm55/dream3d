@@ -31,7 +31,7 @@ npm run dev
 npm start
 ```
 
-Usa el puerto 3000 y `data/forma3d.db`. Necesita un `.env` (ver abajo).
+Usa el puerto 3000 y `data/forma3d.db`. Necesita un `.env` con `ADMIN_PASS` propia (ver abajo).
 
 ## Configuración
 
@@ -39,7 +39,7 @@ Copia `.env.example` a `.env` y rellena los valores. El archivo no se sube al re
 
 | Variable | Para qué |
 |---|---|
-| `ADMIN_PASS` | Contraseña del panel de administración. Obligatoria en producción |
+| `ADMIN_PASS` | Contraseña del panel de administración. Obligatoria fuera del modo pruebas; el servidor no arranca sin ella ni con `forma3d-admin` |
 | `CONTACT_TO` | Correo que recibe los mensajes del formulario de contacto |
 | `SMTP_*` | Servidor de correo para los correos de pedidos y contacto |
 | `STRIPE_SECRET_KEY` | Clave de Stripe (pago con tarjeta) |

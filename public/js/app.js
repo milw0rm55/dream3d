@@ -356,6 +356,9 @@ const App = (() => {
         if (local) { Object.assign(local, sp); }
         else { PRODUCTS.push(sp); }
       });
+      // sample products the server does not publish (unpublished or deleted in the admin) must stay hidden
+      const served = new Set(serverProds.map(sp => sp.id));
+      PRODUCTS.forEach(p => { if (!served.has(p.id)) p.active = false; });
     } catch (_) { /* use local data.js defaults */ }
     // products created in the admin don't carry these fields
     PRODUCTS.forEach(p => { p.colors = p.colors || []; p.specs = p.specs || []; p.reviews = p.reviews || []; });

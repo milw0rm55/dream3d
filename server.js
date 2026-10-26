@@ -23,7 +23,7 @@ const DEV = process.argv.includes('--dev');
 const app  = express();
 app.set('trust proxy', 'loopback'); // real client IP for the rate limiter when nginx proxies on the same host
 const PORT = process.env.PORT || (DEV ? 3001 : 3000);
-const ADMIN_PASS = process.env.ADMIN_PASS || 'forma3d-admin';
+const ADMIN_PASS = process.env.ADMIN_PASS || (DEV ? 'forma3d-admin' : '');
 
 const DATA_DIR     = path.join(__dirname, 'data');
 const PUBLIC_DIR   = path.join(__dirname, 'public');
@@ -41,7 +41,7 @@ const repos = createRepositories(db);
 const MEDIA_SLOTS    = ['front', 'right', 'back', 'left', 'stl'];
 const ORDER_STATUSES = ['pendiente', 'preparando', 'en-camino', 'entregado'];
 const MAX_IMAGE_B    = 10 * 1024 * 1024;
-const MAX_STL_B      = 50 * 1024 * 1024;
+const MAX_STL_B      = 200 * 1024 * 1024; // STL and photo uploads
 
 // Express 4 doesn't catch rejected promises from async handlers
 const h = fn => (req, res, next) => fn(req, res, next).catch(next);
@@ -218,7 +218,7 @@ app.get('/config.json', (req, res) => {
 
 // ── PUBLIC: GET /api/products ────────────────────────────
 app.get('/api/products', h(async (req, res) => {
-  res.json((await repos.products.all()).map(publicProduct));
+  res.json((await repos.products.all()).filter(p => p.active).map(publicProduct));
 }));
 
 // ── PUBLIC: reviews (only approved ones are public) ─────
@@ -358,9 +358,11 @@ app.post('/api/orders/:code/pay', rateLimit(10, 60 * 60 * 1000), h(async (req, r
 }));
 
 // ── ADMIN AUTH MIDDLEWARE ────────────────────────────────
+// only wrong passwords reach the limiter: 10 per 15 min per IP, then 429 for every wrong try
+const adminFailLimit = rateLimit(10, 15 * 60 * 1000);
 function requireAdmin(req, res, next) {
-  if (req.headers['x-admin-pass'] !== ADMIN_PASS) {
-    return res.status(401).json({ error: 'No autorizado' });
+  if (!ADMIN_PASS || req.headers['x-admin-pass'] !== ADMIN_PASS) {
+    return adminFailLimit(req, res, () => res.status(401).json({ error: 'No autorizado' }));
   }
   next();
 }
@@ -783,8 +785,8 @@ async function prepare() {
 
 async function start() {
   if (process.env.NODE_ENV === 'production' && DEV) throw new Error('El modo pruebas (--dev) no puede usarse en producción');
-  if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_PASS) {
-    throw new Error('Define ADMIN_PASS en .env: en producción no se usa la contraseña por defecto');
+  if (!DEV && (!process.env.ADMIN_PASS || process.env.ADMIN_PASS === 'forma3d-admin')) {
+    throw new Error('Define ADMIN_PASS en .env con una contraseña propia (no puede ser la de ejemplo ni estar vacía)');
   }
   await prepare();
   const imported = await importJsonOnce(db, repos, DATA_DIR);
@@ -798,7 +800,7 @@ async function start() {
     } else {
       console.log(`Forma3D corriendo en http://localhost:${PORT}`);
     }
-    console.log(`Admin panel: http://localhost:${PORT}/admin${process.env.ADMIN_PASS ? '' : '  (pass por defecto: forma3d-admin)'}`);
+    console.log(`Admin panel: http://localhost:${PORT}/admin${DEV ? '  (pass por defecto: forma3d-admin)' : ''}`);
     if (!DEV) console.log(mailReady
       ? `Correo: formulario y avisos de pedidos a ${OWNER_TO}; confirmaciones a cada cliente`
       : transporter

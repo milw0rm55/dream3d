@@ -155,15 +155,24 @@ const Admin = (() => {
     'repairPct', 'shipCost', 'cardFeePct', 'cardFeeFixed', 'profitPct', 'vatPct', 'roundTo'];
   const DEFAULT_KEYS = CALC_KEYS.filter(k => !['hours', 'minutes', 'weightG'].includes(k));
   const SHELL_FRACTION = 0.4; // walls + top/bottom share of a small figure's volume
-  const MAX_STL_B = 50 * 1024 * 1024;
+  const MAX_STL_B = 200 * 1024 * 1024;
 
   let _media = {};          // slot -> { url, blob, preview, removed }
   let _stl = {};            // { url, file, removed, geometry, stats }
   let _stlViewer = null;
   let _pricingDefaults = null;
   let _calc = {};
+  let _autoPrice = null;    // last suggested price written into the price box; a value the user typed differs and stays
   let _otherCosts = [];
   let _modalBound = false;
+  const DRAFT_KEY = 'dream3d-admin-draft';
+  const DRAFT_FIELDS = ['mName', 'mTag', 'mPrice', 'mStock', 'mDesc', 'mNotes'];
+  // storage can throw in private windows: a draft is a convenience, never a reason to fail
+  const draftStore = {
+    get() { try { return JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch (e) { return null; } },
+    set(v) { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(v)); } catch (e) { /* no draft */ } },
+    clear() { try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* nothing to clear */ } },
+  };
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const money = n => Number(n || 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
@@ -193,7 +202,7 @@ const Admin = (() => {
         <td>${p.price > 0 ? money(p.price) : '<em>A consultar</em>'}</td>
         <td>${p.stock}</td>
         <td class="notes-cell">${p.notes ? `<span class="notes-text" title="${p.notes.replace(/"/g,'&quot;')}">${p.notes.slice(0,40)}${p.notes.length>40?'…':''}</span>` : '<span style="color:var(--border)">—</span>'}</td>
-        <td><span class="${p.active ? 'active-dot' : 'inactive-dot'}"></span></td>
+        <td><span class="${p.active ? 'active-dot' : 'inactive-dot'}"></span>${p.active ? '' : ' <em>borrador</em>'}</td>
         <td>
           <div class="table-actions">
             <button class="btn-sm" onclick="Admin.openProductModal(${p.id})">Editar</button>
@@ -216,6 +225,8 @@ const Admin = (() => {
     $('mDesc').value    = p ? p.desc : '';
     $('mNotes').value   = p ? (p.notes || '') : '';
     setStatus('');
+    _autoPrice = p ? null : '';
+    if (!p) _restoreDraft();
     $('gcodeInfo').textContent = '';
     $('stlEstimateInfo').textContent = '';
 
@@ -242,6 +253,21 @@ const Admin = (() => {
     $('productModal').style.display = 'flex';
   }
 
+  // a new product is kept until saved: closing the modal by mistake (outside it, or the X) loses nothing
+  function _saveDraft() {
+    if ($('modalId').value) return;
+    const d = {};
+    DRAFT_FIELDS.forEach(id => { d[id] = $(id).value; });
+    draftStore.set(d);
+  }
+
+  function _restoreDraft() {
+    const d = draftStore.get();
+    if (!d) return;
+    DRAFT_FIELDS.forEach(id => { if (id in d) $(id).value = d[id]; });
+    setStatus('Recuperado el borrador del producto que no llegaste a guardar.');
+  }
+
   function closeModal() {
     $('productModal').style.display = 'none';
     _releaseMedia();
@@ -265,10 +291,11 @@ const Admin = (() => {
       });
     });
     $('mPrice').addEventListener('input', _renderCalc);
+    DRAFT_FIELDS.forEach(id => $(id).addEventListener('input', _saveDraft));
     $('gcodeInput').addEventListener('change', e => {
       const f = e.target.files[0];
       e.target.value = '';
-      if (f) _readGcode(f);
+      if (f) _readGcode(f).catch(err => { $('gcodeInfo').textContent = `No se pudo leer ${f.name}: ${err.message}`; });
     });
     $('stlInput').addEventListener('change', e => {
       const f = e.target.files[0];
@@ -382,7 +409,7 @@ const Admin = (() => {
   const _stlModule = () => import('/js/stl-viewer.js');
 
   async function _onStlFile(file) {
-    if (file.size > MAX_STL_B) { setStatus('El STL supera 50 MB.'); return; }
+    if (file.size > MAX_STL_B) { setStatus('El STL supera 200 MB.'); return; }
     setStatus('Leyendo STL…');
     try {
       const mod = await _stlModule();
@@ -489,6 +516,7 @@ const Admin = (() => {
 
   function _renderCalc() {
     const r = PricingCalc.computePrice(_calc, _otherCosts);
+    if ($('mPrice').value === _autoPrice) { $('mPrice').value = r.rounded || ''; _autoPrice = $('mPrice').value; }
     const current = Number($('mPrice').value) || 0;
     const margin = current > 0 ? PricingCalc.margin(current, _calc, r) : null;
     const row = (label, v, cls = '') => `<tr class="${cls}"><td>${label}</td><td>${money(v)}</td></tr>`;
@@ -546,12 +574,23 @@ const Admin = (() => {
     _renderCalc();
   }
 
-  // PrusaSlicer, Orca/Bambu and Cura write time and filament as comments at the start or end
-  async function _readGcode(file) {
+  async function _gcodeText(file) {
     const CHUNK = 256 * 1024;
     const head = await file.slice(0, CHUNK).text();
     const tail = file.size > CHUNK ? await file.slice(Math.max(CHUNK, file.size - CHUNK)).text() : '';
-    const text = head + '\n' + tail;
+    return head + '\n' + tail;
+  }
+
+  // a .3mf keeps the gcode comments in its gcode files, or Bambu/Orca metadata in Metadata/slice_info.config
+  async function _threeMfText(file) {
+    const entries = await Zip.unzip(new Uint8Array(await file.arrayBuffer()),
+      n => n === 'Metadata/slice_info.config' || /\.gcode$/i.test(n));
+    return Object.values(entries).map(b => new TextDecoder().decode(b)).join('\n');
+  }
+
+  // PrusaSlicer, Orca/Bambu and Cura write time and filament as comments at the start or end
+  async function _readGcode(file) {
+    const text = /\.3mf$/i.test(file.name) ? await _threeMfText(file) : await _gcodeText(file);
 
     let seconds = null;
     const dur = text.match(/estimated printing time(?: \(normal mode\))?\s*[=:]\s*([^\n;]+)/i)
@@ -560,14 +599,17 @@ const Admin = (() => {
       const part = (u) => { const m = dur[1].match(new RegExp('(\\d+)\\s*' + u)); return m ? Number(m[1]) : 0; };
       seconds = part('d') * 86400 + part('h') * 3600 + part('m') * 60 + part('s');
     } else {
-      const cura = text.match(/;TIME:(\d+)/);
-      if (cura) seconds = Number(cura[1]);
+      const time = text.match(/;TIME:(\d+)/) || text.match(/key="prediction" value="(\d+)"/);
+      if (time) seconds = Number(time[1]);
     }
 
     let grams = null;
     const g = text.match(/(?:total )?filament (?:used|weight) \[g\]\s*[=:]\s*([\d.,\s]+)/i);
+    const bambuGrams = text.match(/key="weight" value="([\d.]+)"/);
     if (g) {
       grams = g[1].split(',').reduce((s, v) => s + (parseFloat(v) || 0), 0);
+    } else if (bambuGrams) {
+      grams = Number(bambuGrams[1]);
     } else {
       const meters = text.match(/;Filament used:\s*([\d.]+)m/i);
       if (meters) {
@@ -578,7 +620,7 @@ const Admin = (() => {
     }
 
     if (seconds === null && grams === null) {
-      $('gcodeInfo').textContent = `No he encontrado el tiempo ni el peso en ${file.name}. Expórtalo desde PrusaSlicer, Orca/Bambu Studio o Cura.`;
+      $('gcodeInfo').textContent = `No he encontrado el tiempo ni el peso en ${file.name}. Expórtalo como gcode o 3mf desde PrusaSlicer, Orca/Bambu Studio o Cura.`;
       return;
     }
     const setInput = (k, v) => { _calc[k] = v; document.querySelector(`#calcInputs [data-k="${k}"]`).value = v; };
@@ -602,7 +644,8 @@ const Admin = (() => {
     if (!r.ok) throw new Error(`${slot === 'stl' ? 'STL' : SLOT_LABEL[slot]}: ${json.error || 'error al subir'}`);
   }
 
-  async function saveProduct() {
+  // a draft is saved but not shown in the shop; "Publicar" makes it visible
+  async function saveProduct(asDraft = false) {
     const id = $('modalId').value;
     const result = PricingCalc.computePrice(_calc, _otherCosts);
     const inputs = {};
@@ -616,7 +659,7 @@ const Admin = (() => {
       stock: Number($('mStock').value) || 0,
       desc:  $('mDesc').value.trim(),
       notes: $('mNotes').value.trim(),
-      active: true,
+      active: !asDraft,
       pricing: { inputs, cost: Math.round(result.cost * 100) / 100, suggested: result.rounded },
     };
     if (!data.name) { modalTab('data'); setStatus('Falta el nombre del producto.'); return; }
@@ -627,6 +670,7 @@ const Admin = (() => {
     try {
       const saved = await api(id ? 'PUT' : 'POST', id ? `/api/admin/products/${id}` : '/api/admin/products', data);
       $('modalId').value = saved.id;
+      draftStore.clear();
 
       const jobs = [];
       SLOTS.forEach(s => {
