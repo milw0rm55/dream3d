@@ -221,7 +221,7 @@
           <div class="calc-inputs" id="calcInputs">
             <fieldset>
               <legend>Impresión</legend>
-              <label class="btn-ghost btn-file calc-gcode">Cargar gcode (tiempo y peso)<input type="file" id="gcodeInput" accept=".gcode,.gco,.g,.bgcode" hidden></label>
+              <label class="btn-ghost btn-file calc-gcode">Cargar gcode o 3mf (tiempo y peso)<input type="file" id="gcodeInput" accept=".gcode,.gco,.g,.bgcode,.3mf" hidden></label>
               <p class="calc-note" id="gcodeInfo"></p>
               <div class="calc-row">
                 <label>Tiempo <span class="pair"><input type="number" data-k="hours" min="0" step="1"> h <input type="number" data-k="minutes" min="0" max="59" step="1"> min</span></label>
@@ -314,13 +314,15 @@
     <div class="modal-footer">
       <p class="modal-status" id="modalStatus" role="status"></p>
       <button class="btn-ghost" onclick="Admin.closeModal()">Cancelar</button>
-      <button class="btn-yellow" id="modalSave" onclick="Admin.saveProduct()">Guardar</button>
+      <button class="btn-ghost" onclick="Admin.saveProduct(true)">Guardar borrador</button>
+      <button class="btn-yellow" id="modalSave" onclick="Admin.saveProduct()">Publicar</button>
     </div>
   </div>
 </div>
 
 <script src="/vendor/chart.js/chart.umd.js"></script>
 <script src="/admin/pricing-calc.js"></script>
+<script src="/admin/unzip.js"></script>
 <script src="/admin/admin.js"></script>
 </body>
 </html>

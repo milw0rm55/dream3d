@@ -41,7 +41,7 @@ const repos = createRepositories(db);
 const MEDIA_SLOTS    = ['front', 'right', 'back', 'left', 'stl'];
 const ORDER_STATUSES = ['pendiente', 'preparando', 'en-camino', 'entregado'];
 const MAX_IMAGE_B    = 10 * 1024 * 1024;
-const MAX_STL_B      = 50 * 1024 * 1024;
+const MAX_STL_B      = 200 * 1024 * 1024; // STL and photo uploads
 
 // Express 4 doesn't catch rejected promises from async handlers
 const h = fn => (req, res, next) => fn(req, res, next).catch(next);
