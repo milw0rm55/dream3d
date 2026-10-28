@@ -13,8 +13,8 @@ async function setup({ onPaid } = {}) {
   const db = createSqliteDb(':memory:');
   await migrate(db);
   const repos = createRepositories(db);
-  await repos.products.create({ id: 1, name: 'Caballero', price: 25, colors: ['#DFEB1E', '#E03030'] });
-  await repos.products.create({ id: 2, name: 'Gato', price: 12.5, colors: [] });
+  await repos.products.create({ id: 1, name: 'Caballero', price: 25 });
+  await repos.products.create({ id: 2, name: 'Gato', price: 12.5 });
   await repos.products.create({ id: 3, name: 'Retirado', price: 10, active: false });
 
   const stripe = Stripe('sk_test_dummy');
@@ -36,16 +36,14 @@ const signed = (stripe, event) => {
 
 test('cart prices come from the database, never from the browser', async () => {
   const { payments } = await setup();
-  const r = await payments.priceCart([{ id: 2, qty: 2, price: 0.01, color: '#000' }]);
+  const r = await payments.priceCart([{ id: 2, qty: 2, price: 0.01 }]);
   assert.equal(r.subtotal, 25);
   assert.equal(r.shipping, 3.9, 'under 30 € pays shipping');
   assert.equal(r.total, 28.9);
   assert.equal(r.lines[0].price, 12.5);
-  assert.equal(r.lines[0].color, null, 'unknown colour is dropped');
 
-  const free = await payments.priceCart([{ id: 1, qty: 2, color: '#E03030' }]);
+  const free = await payments.priceCart([{ id: 1, qty: 2 }]);
   assert.equal(free.shipping, 0);
-  assert.equal(free.lines[0].color, '#E03030');
 
   for (const bad of [[], [{ id: 3, qty: 1 }], [{ id: 99, qty: 1 }], [{ id: 1, qty: 0 }], [{ id: 1, qty: 21 }], [{ id: 1, qty: 1.5 }]]) {
     await assert.rejects(payments.priceCart(bad), { status: 400 });

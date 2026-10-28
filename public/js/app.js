@@ -13,10 +13,10 @@ const App = (() => {
   // ── cart ──────────────────────────────────────
   const cart = {
     items: [],
-    add(product, qty, color) {
-      const ex = this.items.find(i => i.id === product.id && i.color === color);
+    add(product, qty) {
+      const ex = this.items.find(i => i.id === product.id);
       if (ex) ex.qty += qty;
-      else this.items.push({ id: product.id, name: product.name, price: product.price, qty, color, svg: Turntable.thumbHtml(product), bg: product.bg });
+      else this.items.push({ id: product.id, name: product.name, price: product.price, qty, svg: Turntable.thumbHtml(product), bg: product.bg });
       _updateBadge();
     },
     updateQty(idx, delta) {
@@ -252,7 +252,7 @@ const App = (() => {
   function quickAdd(id, btn) {
     const p = PRODUCTS.find(x => x.id === id);
     if (!p || p.price === 0) { navigate('product', id); return; }
-    cart.add(p, 1, p.colors[0]);
+    cart.add(p, 1);
     flyToCart(btn);
     if (!btn.dataset.idle) btn.dataset.idle = btn.textContent;
     btn.textContent = 'añadido';
@@ -361,7 +361,7 @@ const App = (() => {
       PRODUCTS.forEach(p => { if (!served.has(p.id)) p.active = false; });
     } catch (_) { /* use local data.js defaults */ }
     // products created in the admin don't carry these fields
-    PRODUCTS.forEach(p => { p.colors = p.colors || []; p.specs = p.specs || []; p.reviews = p.reviews || []; });
+    PRODUCTS.forEach(p => { p.specs = p.specs || []; p.reviews = p.reviews || []; });
 
     const brand = document.getElementById('navBrand');
     if (brand && SITE.brandName) brand.textContent = SITE.brandName;

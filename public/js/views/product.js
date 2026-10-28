@@ -67,8 +67,7 @@ const ProductView = {
       const mod = await import('/js/stl-viewer.js');
       const geometry = await mod.loadStl(p.media.stl);
       if (!stlStage.isConnected || this._product !== p) return;
-      const color = document.querySelector('.color-swatch.selected')?.style.background || p.colors[0] || '#9C9A94';
-      this._viewer = mod.mountViewer(stlStage, geometry, { color });
+      this._viewer = mod.mountViewer(stlStage, geometry, { color: '#9C9A94' });
       status?.remove();
     } catch (err) {
       if (status) status.textContent = 'no se pudo cargar el modelo 3D';
@@ -78,10 +77,9 @@ const ProductView = {
   },
 
   // WhatsApp message carries what the visitor picked on the page
-  _waHref(color = document.querySelector('#view-product .color-swatch.selected')?.dataset.color) {
+  _waHref() {
     const p = this._product;
     const parts = [`Hola, quiero un presupuesto para: ${p.name}`];
-    if (color) parts.push(`color ${color}`);
     parts.push(`cantidad ${this._qty}`);
     return waLink(parts.join(' · '));
   },
@@ -100,10 +98,6 @@ const ProductView = {
     this._stars = 0;
     this._reviewStart = Date.now();
 
-    const swatches = p.colors.map((c, i) =>
-      `<button type="button" class="color-swatch ${i===0?'selected':''}" data-color="${escapeHtml(c)}" aria-label="Color ${escapeHtml(c)}" aria-pressed="${i===0}"
-         style="background:${escapeHtml(c)};border-color:${i===0?'var(--text)':'transparent'}" onclick="ProductView.selectColor(this)"></button>`
-    ).join('');
     const specs = p.specs.map(([k,v]) =>
       `<div class="spec-row"><span class="spec-label">${escapeHtml(k)}</span><span class="spec-val">${escapeHtml(v)}</span></div>`
     ).join('');
@@ -123,23 +117,20 @@ const ProductView = {
         <div class="detail-rating" id="detailRating"></div>
         <p class="detail-price">${p.price > 0 ? formatPrice(p.price) : 'A consultar'}</p>
         <p class="detail-desc">${escapeHtml(p.desc)}</p>
-        ${swatches ? `<div class="detail-options">
-          <h4>Color</h4>
-          <div class="color-swatches">${swatches}</div>
-        </div>` : ''}
         <div class="qty-row">
           <span style="font-size:.82rem;font-weight:600;color:var(--text-muted);letter-spacing:.04em;text-transform:uppercase">Cantidad</span>
           <div class="qty-control">
-            <button class="qty-btn" onclick="ProductView.changeQty(-1)">−</button>
-            <span class="qty-num" id="qtyNum">1</span>
-            <button class="qty-btn" onclick="ProductView.changeQty(1)">+</button>
+            <button class="qty-btn" aria-label="Quitar una unidad" onclick="ProductView.changeQty(-1)">−</button>
+            <span class="qty-num" id="qtyNum" aria-live="polite">1</span>
+            <button class="qty-btn" aria-label="Añadir una unidad" onclick="ProductView.changeQty(1)">+</button>
           </div>
         </div>
         <div class="detail-actions">
           ${p.price > 0
             ? '<button class="btn-yellow" id="addToCartBtn" onclick="ProductView.addToCart()">Añadir al carrito</button>'
-            : `<a class="btn-yellow" id="waOrderBtn" data-wa target="_blank" rel="noopener" href="${escapeHtml(this._waHref(p.colors[0]))}">Pedir presupuesto por WhatsApp</a>`}
+            : `<a class="btn-yellow" id="waOrderBtn" data-wa target="_blank" rel="noopener" href="${escapeHtml(this._waHref())}">Pedir presupuesto por WhatsApp</a>`}
         </div>
+        ${p.price > 0 ? '<p class="secure-pay"><img src="/img/stripe-logo.png" alt="Stripe" height="22"> Pagos seguros con Stripe</p>' : ''}
         ${specs ? `<div class="detail-specs">
           <h4>Especificaciones</h4>${specs}
         </div>` : ''}
@@ -244,15 +235,6 @@ const ProductView = {
     }).join('');
   },
 
-  selectColor(el) {
-    document.querySelectorAll('.color-swatch').forEach(s => {
-      s.classList.remove('selected'); s.style.borderColor = 'transparent'; s.setAttribute('aria-pressed', 'false');
-    });
-    el.classList.add('selected'); el.style.borderColor = 'var(--text)'; el.setAttribute('aria-pressed', 'true');
-    if (this._viewer) this._viewer.setColor(el.style.background);
-    this._updateWa();
-  },
-
   changeQty(d) {
     this._qty = Math.max(1, this._qty + d);
     const el = document.getElementById('qtyNum');
@@ -263,9 +245,7 @@ const ProductView = {
   addToCart() {
     if (!this._product) return;
     if (this._product.price === 0) { App.navigate('home'); return; }
-    // hex from the product data, so the server can match it against the product's colours
-    const color = document.querySelector('#view-product .color-swatch.selected')?.dataset.color || this._product.colors[0];
-    App.cart.add(this._product, this._qty, color);
+    App.cart.add(this._product, this._qty);
     const btn = document.getElementById('addToCartBtn');
     if (btn) {
       App.flyToCart(btn);

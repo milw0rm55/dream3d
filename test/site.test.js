@@ -145,6 +145,29 @@ test('checkout by bank transfer: server prices, private order page, IBAN check d
   assert.deepEqual(emails.map(m => m.subject), [`Pago recibido · pedido ${order} · dream3d`], 'one payment email, even if marked twice');
 });
 
+test('stock: a paid order takes its units once, a refunded-to-unpaid one gives them back, never below 0', async () => {
+  await repos.products.create({ id: 50, name: 'Stock', tag: 'Otros', price: 10, stock: 3 });
+  const stock = async () => (await repos.products.get(50)).stock;
+  const line = { productId: 50, name: 'Stock', qty: 2, price: 10 };
+  const o = await repos.orders.create({ customer: { name: 'Eva' }, items: [line], total: 20 });
+
+  assert.ok(await repos.orders.markPaid(o.id, { method: 'tarjeta' }));
+  assert.equal(await stock(), 1);
+  assert.ok(!(await repos.orders.markPaid(o.id, { method: 'tarjeta' })), 'duplicate webhook');
+  assert.equal(await stock(), 1, 'not taken twice');
+
+  await repos.orders.update(o.id, { paid: false });
+  assert.equal(await stock(), 3, 'un-marking gives the units back');
+
+  const big = await repos.orders.create({ customer: { name: 'Hugo' }, items: [{ ...line, qty: 5 }], total: 50 });
+  await repos.orders.markPaid(big.id, { method: 'transferencia' });
+  assert.equal(await stock(), 0, 'stock never goes negative');
+
+  const quote = await repos.orders.create({ customer: { name: 'Ana' }, items: [{ name: 'Presupuesto', qty: 1, price: 30 }], total: 30 });
+  await repos.orders.markPaid(quote.id, { method: 'transferencia' });
+  assert.equal(await stock(), 0, 'lines without a product are skipped');
+});
+
 test('shipping: tracking code is validated, stored, emailed and shown on the customer order page', async () => {
   const o = await repos.orders.create({ customer: { name: 'Luis', email: 'luis@correo.es' }, items: [{ name: 'Figura', qty: 1, price: 20 }], total: 20, paid: true });
   const ship = code => fetch(`${base}/api/admin/orders/${o.id}/ship`, { method: 'POST', headers: ADMIN, body: JSON.stringify({ trackingCode: code }) });

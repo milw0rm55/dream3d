@@ -20,6 +20,7 @@ module.exports = {
     line:        '#E2E0DA', // separadores finos
     accent:      '#E9E6DE', // relleno en hover (cards, menú)
     accentStrong:'#D9D5CA', // estado presionado
+    cta:         '#0A0A0A', // botones principales
     onInk:       '#FFFFFF', // texto sobre fondos tinta
     inverseBg:   '#0A0A0A', // footer
     inverseFg:   '#FFFFFF',
@@ -28,16 +29,17 @@ module.exports = {
 
     // ── modo oscuro ──────────────────────────────
     dark: {
-      ink:         '#EDECE7',
-      paper:       '#0F0F0E',
-      surfaceAlt:  '#181817',
-      textMuted:   '#A3A19A',
-      line:        '#2E2D2A',
-      accent:      '#24231F',
-      accentStrong:'#302F2A',
-      onInk:       '#0F0F0E',
-      inverseBg:   '#000000',
-      inverseFg:   '#EDECE7',
+      ink:         '#FCFAFD',
+      paper:       '#3D3C48', // slate con matiz violeta
+      surfaceAlt:  '#4A4955',
+      textMuted:   '#B3B1C2',
+      line:        '#5C5A6A',
+      accent:      '#4F4D5D',
+      accentStrong:'#5E5C6F',
+      cta:         '#A795EB', // violeta de los botones
+      onInk:       '#1E1D26',
+      inverseBg:   '#2F2E38',
+      inverseFg:   '#FCFAFD',
       success:     '#7CC98A',
       danger:      '#F2685C',
     },

@@ -23,15 +23,17 @@
   <div class="login-card">
     <div class="login-logo">dream3d <em>admin</em></div>
     <p class="login-sub">Acceso al panel de administración</p>
-    <div class="form-group"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')Admin.login()"></div>
-    <button class="btn-primary" onclick="Admin.login()">Entrar</button>
+    <form onsubmit="event.preventDefault(); Admin.login()">
+      <div class="form-group"><label for="loginPass">Contraseña</label><input type="password" id="loginPass" name="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="btn-primary" type="submit">Entrar</button>
+    </form>
     <p id="loginErr" class="login-err"></p>
   </div>
 </div>
 
 <div id="admin-app" class="admin-wrap" style="display:none">
   <aside class="sidebar">
-    <div class="sidebar-logo" onclick="Admin.nav('dashboard')">dream3d</div>
+    <button type="button" class="sidebar-logo" onclick="Admin.nav('dashboard')">dream3d</button>
     <nav class="sidebar-nav">
       <button class="nav-item active" data-section="dashboard" onclick="Admin.nav('dashboard')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>

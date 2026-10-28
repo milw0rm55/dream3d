@@ -13,7 +13,7 @@ function userError(message, status = 400) {
 }
 
 function createPayments({ stripe = null, webhookSecret = '', repos, siteUrl, shipping, onPaid = async () => {} }) {
-  // cart items from the browser: only product id, quantity and colour are trusted (after checks)
+  // cart items from the browser: only product id and quantity are trusted (after checks)
   async function priceCart(items) {
     if (!Array.isArray(items) || !items.length) throw userError('El carrito está vacío.');
     if (items.length > MAX_LINES) throw userError('Demasiados productos en un solo pedido.');
@@ -23,8 +23,7 @@ function createPayments({ stripe = null, webhookSecret = '', repos, siteUrl, shi
       if (!p || !p.active || !(p.price > 0)) throw userError('Algún producto ya no está disponible. Revisa el carrito.');
       const qty = Number(it.qty);
       if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) throw userError('Cantidad no válida.');
-      const color = p.colors.includes(it.color) ? it.color : (p.colors[0] || null);
-      lines.push({ productId: p.id, name: p.name, qty, price: p.price, color });
+      lines.push({ productId: p.id, name: p.name, qty, price: p.price });
     }
     const subtotal = money(lines.reduce((s, l) => s + l.price * l.qty, 0));
     const ship = subtotal >= shipping.freeFrom ? 0 : shipping.cost;
@@ -40,7 +39,7 @@ function createPayments({ stripe = null, webhookSecret = '', repos, siteUrl, shi
       price_data: {
         currency: 'eur',
         unit_amount: cents(i.price),
-        product_data: { name: i.color ? `${i.name} · color ${i.color}` : i.name },
+        product_data: { name: i.name },
       },
     }));
     if (order.shipping > 0) {

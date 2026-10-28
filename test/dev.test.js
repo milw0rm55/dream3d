@@ -9,7 +9,7 @@ const { app, repos, mailbox, ready } = require('../server');
 let server, base;
 before(async () => {
   await ready();
-  await repos.products.create({ id: 1, name: 'Caballero', price: 25, colors: ['#DFEB1E'] });
+  await repos.products.create({ id: 1, name: 'Caballero', price: 25 });
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}`;
 });

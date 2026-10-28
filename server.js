@@ -167,6 +167,7 @@ app.get('/theme.css', (req, res) => {
   --accent:        ${p.accent};
   --accent-strong: ${p.accentStrong};
   --on-ink:        ${p.onInk};
+  --cta:           ${p.cta};
   --inverse-bg:    ${p.inverseBg};
   --inverse-fg:    ${p.inverseFg};
   --success:       ${p.success};
@@ -343,7 +344,7 @@ app.get('/api/orders/:code', rateLimit(60, 60 * 1000), h(async (req, res) => {
   const site = await getSite();
   res.json({
     id: o.id, date: o.date, status: o.status, paid: o.paid, paymentMethod: o.paymentMethod,
-    items: o.items.map(({ name, qty, price, color }) => ({ name, qty, price, color })),
+    items: o.items.map(({ name, qty, price }) => ({ name, qty, price })),
     subtotal: o.subtotal, shipping: o.shipping, total: o.total,
     customer: { name: o.customer.name, address: o.customer.address || null },
     tracking: o.trackingCode ? { code: o.trackingCode, url: trackingLink(site.trackingUrl, o.trackingCode) || null } : null,
