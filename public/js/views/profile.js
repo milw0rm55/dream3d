@@ -33,23 +33,23 @@ const ProfileView = {
 
     <div class="tab-panel" id="tab-data">
       <div class="profile-form-grid">
-        <div class="form-group"><label>Nombre</label><input type="text" value="${escapeHtml(user.name)}"></div>
-        <div class="form-group"><label>Email</label><input type="email" value="${escapeHtml(user.email || '')}"></div>
-        <div class="form-group"><label>Teléfono</label><input type="tel" placeholder="+34 600 000 000"></div>
-        <div class="form-group"><label>Ciudad</label><input type="text" placeholder="Madrid"></div>
-        <div class="form-group full"><label>Nueva contraseña</label><input type="password" placeholder="Déjalo vacío para no cambiarla"></div>
+        <div class="form-group"><label for="pfName">Nombre</label><input type="text" id="pfName" name="name" autocomplete="name" value="${escapeHtml(user.name)}"></div>
+        <div class="form-group"><label for="pfEmail">Email</label><input type="email" id="pfEmail" name="email" autocomplete="email" value="${escapeHtml(user.email || '')}"></div>
+        <div class="form-group"><label for="pfPhone">Teléfono</label><input type="tel" id="pfPhone" name="phone" autocomplete="tel" placeholder="+34 600 000 000"></div>
+        <div class="form-group"><label for="pfCity">Ciudad</label><input type="text" id="pfCity" name="city" autocomplete="address-level2" placeholder="Madrid"></div>
+        <div class="form-group full"><label for="pfPass">Nueva contraseña</label><input type="password" id="pfPass" name="new-password" autocomplete="new-password" placeholder="Déjalo vacío para no cambiarla"></div>
       </div>
       <button class="btn-yellow" style="margin-top:.5rem">Guardar cambios</button>
       <button class="logout-btn" onclick="ProfileView.logout()">Cerrar sesión</button>
     </div>
 
     <div class="tab-panel" id="tab-addresses">
-      <div class="form-group"><label>Dirección</label><input type="text" placeholder="Calle Mayor 12, 3.º B"></div>
+      <div class="form-group"><label for="adStreet">Dirección</label><input type="text" id="adStreet" name="street" autocomplete="street-address" placeholder="Calle Mayor 12, 3.º B"></div>
       <div class="profile-form-grid" style="margin-top:1rem">
-        <div class="form-group"><label>Ciudad</label><input type="text" placeholder="Madrid"></div>
-        <div class="form-group"><label>Código postal</label><input type="text" placeholder="28013"></div>
-        <div class="form-group"><label>Provincia</label><input type="text" placeholder="Madrid"></div>
-        <div class="form-group"><label>País</label><input type="text" value="España"></div>
+        <div class="form-group"><label for="adCity">Ciudad</label><input type="text" id="adCity" name="city" autocomplete="address-level2" placeholder="Madrid"></div>
+        <div class="form-group"><label for="adZip">Código postal</label><input type="text" id="adZip" name="zip" autocomplete="postal-code" inputmode="numeric" placeholder="28013"></div>
+        <div class="form-group"><label for="adProvince">Provincia</label><input type="text" id="adProvince" name="province" autocomplete="address-level1" placeholder="Madrid"></div>
+        <div class="form-group"><label for="adCountry">País</label><input type="text" id="adCountry" name="country" autocomplete="country-name" value="España"></div>
       </div>
       <button class="btn-yellow" style="margin-top:.5rem">Guardar dirección</button>
     </div>

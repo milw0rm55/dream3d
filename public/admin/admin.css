@@ -64,6 +64,11 @@ body {
   padding: 0 .5rem .5rem;
   cursor: pointer;
   margin-bottom: 1rem;
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
 }
 .sidebar-logo span { color: var(--yellow); }
 .sidebar-nav { display: flex; flex-direction: column; gap: .25rem; flex: 1; }

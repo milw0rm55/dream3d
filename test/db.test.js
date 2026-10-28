@@ -15,7 +15,7 @@ async function freshDb() {
 
 test('products: create, update, media, delete cascades reviews', async () => {
   const { db, repos } = await freshDb();
-  const p = await repos.products.create({ name: 'Figura', tag: 'Regalos', price: 12.345, desc: 'Hola', colors: ['#fff'] });
+  const p = await repos.products.create({ name: 'Figura', tag: 'Regalos', price: 12.345, desc: 'Hola' });
   assert.equal(p.price, 12.35);
   assert.equal(p.active, true);
   assert.deepEqual(p.media, {});

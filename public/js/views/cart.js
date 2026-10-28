@@ -38,7 +38,6 @@ const CartView = {
         <div class="cart-item-thumb" aria-hidden="true">${item.svg}</div>
         <div>
           <p class="cart-item-name">${escapeHtml(item.name)}</p>
-          ${item.color ? `<p class="cart-item-variant">Color: <span class="cart-color" style="background:${escapeHtml(item.color)}"></span></p>` : ''}
           <div class="cart-item-qty">
             <button class="cart-qty-btn" aria-label="Quitar una unidad" onclick="App.cart.updateQty(${idx},-1)">−</button>
             <span aria-label="Cantidad">${item.qty}</span>
@@ -130,7 +129,7 @@ const CartView = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: App.cart.items.map(i => ({ id: i.id, qty: i.qty, color: i.color })),
+          items: App.cart.items.map(i => ({ id: i.id, qty: i.qty })),
           customer: { name: val('name'), email: val('email'), phone: val('phone') },
           address: { street: val('street'), zip: val('zip'), city: val('city'), province: val('province') },
           notes: val('notes'),

@@ -60,7 +60,7 @@ function createMailer({ transport = null, from = '', ownerTo = '', siteUrl, getS
       subject,
       text: [
         `Pedido ${o.id} · ${eur(o.total)} · ${o.paid ? 'PAGADO' : 'pendiente de pago'} (${o.paymentMethod})`,
-        o.items.map(i => `- ${i.name} × ${i.qty}${i.color ? ` · color ${i.color}` : ''}`).join('\n'),
+        o.items.map(i => `- ${i.name} × ${i.qty}`).join('\n'),
         `Cliente: ${c.name} · ${c.email || 'sin correo'} · ${c.phone || 'sin teléfono'}`,
         c.address ? `Envío: ${c.address.street}, ${c.address.zip} ${c.address.city} (${c.address.province})` : '',
         o.notes ? `Notas: ${o.notes}` : '',

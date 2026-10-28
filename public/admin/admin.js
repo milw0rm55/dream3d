@@ -200,7 +200,7 @@ const Admin = (() => {
           <div class="row-badges">${photos ? `<span>${photos}/4 fotos</span>` : ''}${p.media && p.media.stl ? '<span>STL</span>' : ''}</div></div></div></td>
         <td><span class="tag-pill">${p.tag}</span></td>
         <td>${p.price > 0 ? money(p.price) : '<em>A consultar</em>'}</td>
-        <td>${p.stock}</td>
+        <td>${p.stock > 0 ? p.stock : '<em>0 · bajo pedido</em>'}</td>
         <td class="notes-cell">${p.notes ? `<span class="notes-text" title="${p.notes.replace(/"/g,'&quot;')}">${p.notes.slice(0,40)}${p.notes.length>40?'…':''}</span>` : '<span style="color:var(--border)">—</span>'}</td>
         <td><span class="${p.active ? 'active-dot' : 'inactive-dot'}"></span>${p.active ? '' : ' <em>borrador</em>'}</td>
         <td>

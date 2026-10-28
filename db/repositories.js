@@ -18,7 +18,7 @@ class ProductRepository {
     return r && {
       id: r.id, name: r.name, tag: r.tag, price: r.price, stock: r.stock, active: !!r.active,
       desc: r.description, notes: r.notes,
-      colors: parse(r.colors, []), specs: parse(r.specs, []), media: parse(r.media, {}),
+      specs: parse(r.specs, []), media: parse(r.media, {}),
       pricing: parse(r.pricing, null),
     };
   }
@@ -27,7 +27,7 @@ class ProductRepository {
     return [
       String(p.name || ''), String(p.tag || ''), money(p.price), Math.max(0, Math.round(Number(p.stock) || 0)),
       flag(p.active !== false), String(p.desc || ''), String(p.notes || ''),
-      JSON.stringify(p.colors || []), JSON.stringify(p.specs || []), JSON.stringify(p.media || {}),
+      JSON.stringify(p.specs || []), JSON.stringify(p.media || {}),
       p.pricing == null ? null : JSON.stringify(p.pricing),
     ];
   }
@@ -42,11 +42,11 @@ class ProductRepository {
 
   // data.id is only honoured for imports; routes never pass it
   async create(data) {
-    const cols = 'name, tag, price, stock, active, description, notes, colors, specs, media, pricing';
+    const cols = 'name, tag, price, stock, active, description, notes, specs, media, pricing';
     const row = Number.isInteger(data.id)
-      ? await this.db.get(`INSERT INTO products (id, ${cols}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+      ? await this.db.get(`INSERT INTO products (id, ${cols}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
           [data.id, ...ProductRepository.values(data)])
-      : await this.db.get(`INSERT INTO products (${cols}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+      : await this.db.get(`INSERT INTO products (${cols}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
           ProductRepository.values(data));
     return ProductRepository.toApi(row);
   }
@@ -55,12 +55,12 @@ class ProductRepository {
   async update(id, patch) {
     const current = await this.get(id);
     if (!current) return null;
-    const editable = ['name', 'tag', 'price', 'stock', 'active', 'desc', 'notes', 'colors', 'specs', 'pricing'];
+    const editable = ['name', 'tag', 'price', 'stock', 'active', 'desc', 'notes', 'specs', 'pricing'];
     const next = { ...current };
     for (const k of editable) if (k in patch) next[k] = patch[k];
     const row = await this.db.get(
       `UPDATE products SET name = ?, tag = ?, price = ?, stock = ?, active = ?, description = ?, notes = ?,
-         colors = ?, specs = ?, media = ?, pricing = ? WHERE id = ? RETURNING *`,
+         specs = ?, media = ?, pricing = ? WHERE id = ? RETURNING *`,
       [...ProductRepository.values(next), id]);
     return ProductRepository.toApi(row);
   }
@@ -136,13 +136,27 @@ class OrderRepository {
     return OrderRepository.toApi(row);
   }
 
-  // atomic unpaid → paid: returns the order only to the caller that changed it (duplicate webhooks get null)
+  // atomic unpaid → paid: returns the order only to the caller that changed it (duplicate webhooks get null),
+  // so the stock of a paid order leaves exactly once
   async markPaid(code, { method, ref }) {
     const id = orderId(code);
     if (!id) return null;
-    return OrderRepository.toApi(await this.db.get(
+    const row = await this.db.get(
       'UPDATE orders SET paid = 1, payment_method = ?, payment_ref = ? WHERE id = ? AND paid = 0 RETURNING *',
-      [method, ref || null, id]));
+      [method, ref || null, id]);
+    if (row) await this.moveStock(parse(row.items, []), -1);
+    return OrderRepository.toApi(row);
+  }
+
+  // stock 0 means "made to order", so it never goes below 0; lines without a product (WhatsApp quotes) are skipped
+  async moveStock(items, sign) {
+    for (const it of items) {
+      if (!Number.isInteger(it.productId)) continue;
+      const delta = sign * it.qty;
+      await this.db.run(
+        'UPDATE products SET stock = CASE WHEN stock + ? < 0 THEN 0 ELSE stock + ? END WHERE id = ?',
+        [delta, delta, it.productId]);
+    }
   }
 
   async update(code, patch) {
@@ -160,6 +174,8 @@ class OrderRepository {
         'paymentRef' in patch ? patch.paymentRef : current.payment_ref,
         id,
       ]);
+    // un-marking a paid order gives its units back
+    if (current.paid && patch.paid === false) await this.moveStock(parse(current.items, []), +1);
     return OrderRepository.toApi(row);
   }
 }
