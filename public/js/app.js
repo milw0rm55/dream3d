@@ -350,16 +350,8 @@ const App = (() => {
       ]);
       if (cfg.blobatarColors) _palette = cfg.blobatarColors;
       if (cfg.defaultMode) ThemeMode.setDefault(cfg.defaultMode);
-      // merge server product data (price, stock, active) into local PRODUCTS (which hold SVGs)
-      serverProds.forEach(sp => {
-        const local = PRODUCTS.find(p => p.id === sp.id);
-        if (local) { Object.assign(local, sp); }
-        else { PRODUCTS.push(sp); }
-      });
-      // sample products the server does not publish (unpublished or deleted in the admin) must stay hidden
-      const served = new Set(serverProds.map(sp => sp.id));
-      PRODUCTS.forEach(p => { if (!served.has(p.id)) p.active = false; });
-    } catch (_) { /* use local data.js defaults */ }
+      PRODUCTS = serverProds;
+    } catch (_) { /* no products without the server */ }
     // products created in the admin don't carry these fields
     PRODUCTS.forEach(p => { p.specs = p.specs || []; p.reviews = p.reviews || []; });
 
@@ -371,35 +363,7 @@ const App = (() => {
     const route = _routeFrom(location.pathname, location.search);
     navigate(route.view, route.param, { history: 'replace' });
     _updateNav();
-    _generateStandInFrames();
     CookieNotice.show();
-  }
-
-  // products without real photos get rendered 3D turntable frames, once the page is idle
-  function _generateStandInFrames() {
-    const pending = PRODUCTS.filter(p => p.model && p.active !== false && !Turntable.frames(p).length);
-    if (!pending.length) return;
-    const run = () => import('/js/product-models.js')
-      .then(mod => {
-        mod.renderTurntables(pending).forEach(({ product, frames }) => {
-          product.media = { ...(product.media || {}), ...frames };
-        });
-        if (_current.view === 'product') {
-          const media = document.querySelector('.detail-media');
-          const p = ProductView._product;
-          if (media && p && pending.includes(p)) {
-            media.innerHTML = ProductView._visualHtml(p);
-            ProductView._bindVisual();
-          }
-          return;
-        }
-        if (_current.view !== 'home') return;
-        if (document.body.classList.contains('is-mobile-home')) MobileHomeView.afterMount(_palette);
-        else HomeView._renderGrid();
-      })
-      .catch(err => console.warn('No se pudieron generar las vistas 3D:', err));
-    if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 2000 });
-    else setTimeout(run, 800);
   }
 
   return { navigate, go, scrollTo, cardClick, quickAdd, refreshBlobatars, flyToCart, cart, session, init };
