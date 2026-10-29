@@ -5,7 +5,7 @@
 const App = (() => {
 
   // ── state ─────────────────────────────────────
-  let _palette  = ['#0A0A0A','#3A3A38','#6B6A66','#9C9A94','#C9C6BD','#E9E6DE','#55534E','#B5B2A9'];
+  let _palette  = ['#000000','#9929EA','#CC66DA','#FAEB92'];
   const USER_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
   let _current  = { view: 'home', param: null };
   const _app    = document.getElementById('app');
@@ -336,7 +336,8 @@ const App = (() => {
     PRODUCTS.forEach(p => { p.specs = p.specs || []; p.reviews = p.reviews || []; });
 
     const brand = document.getElementById('navBrand');
-    if (brand && SITE.brandName) brand.textContent = SITE.brandName;
+    // the nav brand is the logo image; keep the text only when there is no image
+    if (brand && SITE.brandName && !brand.querySelector('img')) brand.textContent = SITE.brandName;
     const waFloat = document.getElementById('waFloat');
     if (waFloat) waFloat.href = waLink();
 

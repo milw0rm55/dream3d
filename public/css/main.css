@@ -52,6 +52,7 @@ input, textarea, select { font: inherit; letter-spacing: inherit; }
   transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
 }
 body.nav-at-top .nav-brand { opacity: 0; transform: translateY(-6px); pointer-events: none; }
+.nav-brand img { display: block; height: 2.4rem; width: auto; }
 
 .nav-menu {
   display: flex; align-items: center; margin-left: auto;
@@ -166,6 +167,7 @@ button:disabled { opacity: .5; cursor: default; }
   font-size: min(16.5vw, 8.5rem); line-height: .9; letter-spacing: -.0666em;
   margin-left: -.04em;
 }
+.hero-wordmark img { display: block; width: min(72vw, 22rem); height: auto; }
 .hero-sub { margin-top: .5rem; font-size: 1rem; max-width: 60ch; }
 
 /* page background shapes behind every view: violet capsules, dot and ring (html carries the solid color) */
@@ -173,13 +175,13 @@ button:disabled { opacity: .5; cursor: default; }
 .deco { position: absolute; display: block; }
 .deco-pill {
   left: 26%; bottom: 18%; width: 62%; height: 44%; border-radius: 999px; transform: rotate(-38deg);
-  background: linear-gradient(90deg, var(--cta), #DB99FD); opacity: .85;
+  background: linear-gradient(90deg, var(--cta), #CC66DA); opacity: .85;
 }
 .deco-pill-2 {
   right: 14%; top: -18%; width: 24%; height: 34%; border-radius: 999px; transform: rotate(-38deg);
   background: var(--cta); opacity: .35;
 }
-.deco-dot { right: 6%; top: 14%; width: 22px; height: 22px; border-radius: 50%; background: #DB99FD; }
+.deco-dot { right: 6%; top: 14%; width: 22px; height: 22px; border-radius: 50%; background: #CC66DA; }
 .deco-ring { left: 48%; top: 22%; width: 88px; height: 88px; border-radius: 50%; border: 1px solid var(--cta); opacity: .5; }
 
 .catalog { max-width: var(--page-w); margin: 0 auto; padding: 2em 1em 0; }

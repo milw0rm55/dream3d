@@ -49,7 +49,7 @@ const HomeView = {
     return `
 <div id="view-home" class="view active">
   <section class="hero">
-    <h1 class="hero-wordmark">${siteText('brandName')}</h1>
+    <h1 class="hero-wordmark"><img src="/img/dream3d-full-dark.svg" width="1737" height="1738" alt="${siteText('brandName')}"></h1>
     <p class="hero-sub">${siteText('heroSub')}</p>
   </section>
 

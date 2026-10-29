@@ -33,7 +33,7 @@ export function measure(geometry) {
   };
 }
 
-export function mountViewer(container, geometry, { color = '#9C9A94' } = {}) {
+export function mountViewer(container, geometry, { color = '#9929EA' } = {}) {
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
