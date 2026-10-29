@@ -67,7 +67,7 @@ const ProductView = {
       const mod = await import('/js/stl-viewer.js');
       const geometry = await mod.loadStl(p.media.stl);
       if (!stlStage.isConnected || this._product !== p) return;
-      this._viewer = mod.mountViewer(stlStage, geometry, { color: '#9C9A94' });
+      this._viewer = mod.mountViewer(stlStage, geometry, { color: '#9929EA' });
       status?.remove();
     } catch (err) {
       if (status) status.textContent = 'no se pudo cargar el modelo 3D';

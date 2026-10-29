@@ -24,26 +24,24 @@ module.exports = {
     danger:      '#B42318',
 
     // ── modo oscuro ──────────────────────────────
+    // paleta de marca: negro, morado, orquídea y amarillo pálido
     dark: {
-      ink:         '#FCFAFD',
-      paper:       '#3D3C48', // slate con matiz violeta
-      surfaceAlt:  '#4A4955',
-      textMuted:   '#B3B1C2',
-      line:        '#5C5A6A',
-      accent:      '#4F4D5D',
-      accentStrong:'#5E5C6F',
-      cta:         '#A795EB', // violeta de los botones
-      onInk:       '#1E1D26',
-      inverseBg:   '#2F2E38',
-      inverseFg:   '#FCFAFD',
-      success:     '#7CC98A',
-      danger:      '#F2685C',
+      ink:         '#FAEB92', // texto, bordes y sombras desplazadas
+      paper:       '#000000', // fondo
+      surfaceAlt:  '#000000',
+      textMuted:   '#CC66DA',
+      line:        '#9929EA', // separadores y bordes de tarjetas
+      accent:      '#9929EA', // relleno en hover
+      accentStrong:'#CC66DA', // estado presionado
+      cta:         '#FAEB92', // botones principales
+      onInk:       '#000000', // texto sobre amarillo
+      inverseBg:   '#9929EA', // footer
+      inverseFg:   '#FAEB92',
+      success:     '#FAEB92', // la paleta no tiene verde
+      danger:      '#CC66DA', // la paleta no tiene rojo
     },
 
-    blobatar: [
-      '#0A0A0A', '#3A3A38', '#6B6A66', '#9C9A94',
-      '#C9C6BD', '#E9E6DE', '#55534E', '#B5B2A9',
-    ],
+    blobatar: ['#000000', '#9929EA', '#CC66DA', '#FAEB92'],
   },
 
   fonts: {
