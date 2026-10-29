@@ -80,7 +80,6 @@ const Admin = (() => {
       strong: v('--accent-strong'), mid: mix(v('--text-muted'), v('--ink'), 0.5),
     };
   }
-  ThemeMode.onChange(() => { if (_metrics) _initDashboard(_metrics); _renderStats(); });
 
   function _initDashboard(m) {
     _metrics = m;
@@ -164,6 +163,7 @@ const Admin = (() => {
   let _calc = {};
   let _autoPrice = null;    // last suggested price written into the price box; a value the user typed differs and stays
   let _otherCosts = [];
+  let _pieces = [];         // [{ name, seconds, grams }] read from each gcode or 3mf
   let _modalBound = false;
   const DRAFT_KEY = 'dream3d-admin-draft';
   const DRAFT_FIELDS = ['mName', 'mTag', 'mPrice', 'mStock', 'mDesc', 'mNotes'];
@@ -245,7 +245,9 @@ const Admin = (() => {
     CALC_KEYS.forEach(k => { if (k in _pricingDefaults) _calc[k] = _pricingDefaults[k]; });
     Object.assign(_calc, saved);
     _otherCosts = (saved.otherCosts || []).map(o => ({ ...o }));
+    _pieces = (saved.pieces || []).map(p => ({ ...p }));
     _fillCalc();
+    _renderPieces();
     _renderOtherCosts();
     _renderCalc();
 
@@ -292,10 +294,12 @@ const Admin = (() => {
     });
     $('mPrice').addEventListener('input', _renderCalc);
     DRAFT_FIELDS.forEach(id => $(id).addEventListener('input', _saveDraft));
-    $('gcodeInput').addEventListener('change', e => {
-      const f = e.target.files[0];
+    $('gcodeInput').addEventListener('change', async e => {
+      const files = [...e.target.files];
       e.target.value = '';
-      if (f) _readGcode(f).catch(err => { $('gcodeInfo').textContent = `No se pudo leer ${f.name}: ${err.message}`; });
+      for (const f of files) {
+        await _readGcode(f).catch(err => { $('gcodeInfo').textContent = `No se pudo leer ${f.name}: ${err.message}`; });
+      }
     });
     $('stlInput').addEventListener('change', e => {
       const f = e.target.files[0];
@@ -623,14 +627,32 @@ const Admin = (() => {
       $('gcodeInfo').textContent = `No he encontrado el tiempo ni el peso en ${file.name}. Expórtalo como gcode o 3mf desde PrusaSlicer, Orca/Bambu Studio o Cura.`;
       return;
     }
-    const setInput = (k, v) => { _calc[k] = v; document.querySelector(`#calcInputs [data-k="${k}"]`).value = v; };
-    if (seconds !== null) {
-      setInput('hours', Math.floor(seconds / 3600));
-      setInput('minutes', Math.round((seconds % 3600) / 60));
-    }
-    if (grams !== null) setInput('weightG', Math.round(grams * 10) / 10);
     $('gcodeInfo').textContent = `${file.name}: ${seconds !== null ? `${Math.floor(seconds / 3600)} h ${Math.round((seconds % 3600) / 60)} min` : 'sin tiempo'} · ${grams !== null ? num(grams) + ' g' : 'sin peso'}`;
+    // the same file loaded twice replaces its earlier reading
+    _pieces = _pieces.filter(p => p.name !== file.name).concat({ name: file.name, seconds: seconds || 0, grams: grams || 0 });
+    _syncPieces();
+  }
+
+  // the calculator prices the whole product: its time and filament come from all the pieces
+  function _syncPieces() {
+    Object.assign(_calc, PricingCalc.sumPieces(_pieces));
+    _fillCalc();
+    _renderPieces();
     _renderCalc();
+  }
+
+  function _renderPieces() {
+    const fmt = s => `${Math.floor(s / 3600)} h ${Math.round((s % 3600) / 60)} min`;
+    $('pieceList').innerHTML = _pieces.map((p, i) => `
+      <li class="piece-row">
+        <span class="piece-name">${esc(p.name)}</span>
+        <span>${fmt(p.seconds)} · ${num(p.grams)} g</span>
+        <button class="btn-sm danger" type="button" data-piece="${i}" aria-label="Quitar ${esc(p.name)}">✕</button>
+      </li>`).join('');
+    $('pieceList').querySelectorAll('[data-piece]').forEach(b => b.addEventListener('click', () => {
+      _pieces.splice(Number(b.dataset.piece), 1);
+      _syncPieces();
+    }));
   }
 
   // ── save ───────────────────────────────────────────────
@@ -651,6 +673,7 @@ const Admin = (() => {
     const inputs = {};
     CALC_KEYS.forEach(k => { inputs[k] = _calc[k]; });
     inputs.otherCosts = _otherCosts.filter(o => o.name || o.value);
+    inputs.pieces = _pieces;
 
     const data = {
       name:  $('mName').value.trim(),

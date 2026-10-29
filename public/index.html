@@ -6,9 +6,7 @@
 <title>dream3d · figuras impresas en 3D</title>
 <!--HEAD-->
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0F0F0E" media="(prefers-color-scheme: dark)">
-<script src="/js/theme-mode.js"></script>
+<meta name="theme-color" content="#0F0F0E">
 <link rel="preload" href="/fonts/work-sans-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/work-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/css/fonts.css">
@@ -38,15 +36,10 @@
     <a class="nav-link nav-text" data-scroll="nosotros" data-label="nosotros">nosotros</a>
     <a class="nav-link nav-text" data-scroll="proceso" data-label="cómo pedir">cómo pedir</a>
     <a class="nav-link nav-text" href="/contacto" data-link data-label="contacto">contacto</a>
-    <button class="nav-link nav-icon-btn" type="button" data-theme-toggle aria-label="Modo de color"></button>
     <button class="nav-link nav-icon-btn" data-nav="cart" aria-label="Carrito">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
       <span class="cart-badge" id="cartBadge">0</span>
     </button>
-    <button class="nav-link nav-icon-btn" id="navProfileBtn" data-nav="profile" aria-label="Perfil">
-      <span id="navAvatar"></span>
-    </button>
-    <button class="nav-link nav-text bold" id="navAuthBtn" data-nav="login" data-label="entrar">entrar</button>
   </div>
 </nav>
 
@@ -67,10 +60,8 @@
 <script src="/js/views/home.js"></script>
 <script src="/js/views/product.js"></script>
 <script src="/js/views/cart.js"></script>
-<script src="/js/views/auth.js"></script>
 <script src="/js/views/mobile-home.js"></script>
 <script src="/js/views/contact.js"></script>
-<script src="/js/views/profile.js"></script>
 <script src="/js/views/legal.js"></script>
 <script src="/js/views/order.js"></script>
 <script src="/js/app.js"></script>

@@ -33,7 +33,18 @@
     return (price / (1 + n('vatPct') / 100) - price * n('cardFeePct') / 100 - n('cardFeeFixed') - r.cost) / price * 100;
   }
 
-  const PricingCalc = { computePrice, margin };
+  // a product is several printed pieces: time and filament are summed over all of them
+  function sumPieces(pieces) {
+    const seconds = pieces.reduce((s, p) => s + (Number(p.seconds) || 0), 0);
+    const grams = pieces.reduce((s, p) => s + (Number(p.grams) || 0), 0);
+    return {
+      hours: Math.floor(seconds / 3600),
+      minutes: Math.round((seconds % 3600) / 60),
+      weightG: Math.round(grams * 10) / 10,
+    };
+  }
+
+  const PricingCalc = { computePrice, margin, sumPieces };
   if (typeof module !== 'undefined' && module.exports) module.exports = PricingCalc;
   else root.PricingCalc = PricingCalc;
 })(this);

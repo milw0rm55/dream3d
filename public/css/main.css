@@ -13,9 +13,7 @@
 
 /* ── reset ──────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; background: var(--bg); color-scheme: light; }
-:root[data-theme="dark"] { color-scheme: dark; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; } }
+html { scroll-behavior: smooth; background: var(--bg); color-scheme: dark; }
 body {
   background: transparent;
   color: var(--text);
@@ -433,8 +431,7 @@ button:disabled { opacity: .5; cursor: default; }
 .detail-actions .btn-yellow { flex: 1; min-width: 180px; }
 .secure-pay { display: flex; align-items: center; gap: .5rem; margin-top: .75rem; font-size: .85rem; color: var(--text); }
 .secure-pay img { display: block; width: auto; }
-:root[data-theme="dark"] .secure-pay img { filter: invert(1); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .secure-pay img { filter: invert(1); } }
+.secure-pay img { filter: invert(1); }
 .detail-specs { margin-top: 2rem; border: var(--stroke) solid var(--ink); border-radius: var(--r-lg); padding: .5rem 1.25rem; }
 .detail-specs h4 { font-size: .8rem; font-weight: 500; padding: .75rem 0 .35rem; }
 .spec-row { display: flex; justify-content: space-between; gap: 1rem; font-size: .88rem; padding: .6rem 0; border-top: 1px solid var(--line); }

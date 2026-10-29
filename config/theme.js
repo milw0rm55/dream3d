@@ -5,11 +5,7 @@
  */
 module.exports = {
 
-  // Modo de color por defecto para quien no haya elegido uno en el selector de la web:
-  //   'auto'  → sigue el modo claro/oscuro del navegador o del sistema
-  //   'light' → siempre claro
-  //   'dark'  → siempre oscuro
-  defaultMode: 'auto',
+  // La web es siempre oscura: solo se usa colors.dark.
 
   colors: {
     // ── modo claro ───────────────────────────────
