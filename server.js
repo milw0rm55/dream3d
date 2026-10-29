@@ -176,21 +176,10 @@ app.get('/theme.css', (req, res) => {
   --yellow-dark: ${p.accentStrong};
   --blue:        ${p.ink};
   --lime-deep:   ${p.success};`;
-  const light = palette(c, 'light');
-  const dark  = palette(c.dark, 'dark');
-
-  // data-theme on <html>: "light" | "dark" | "auto"; absent = config default
-  const mode = ['light', 'dark'].includes(theme.defaultMode) ? theme.defaultMode : 'auto';
-  const autoSelectors = mode === 'auto' ? ':root[data-theme="auto"], :root:not([data-theme])' : ':root[data-theme="auto"]';
+  const dark = palette(c.dark, 'dark'); // the site is dark only
 
   const css = `
-:root {${light}
-}
-:root[data-theme="dark"]${mode === 'dark' ? ', :root:not([data-theme])' : ''} {${dark}
-}
-@media (prefers-color-scheme: dark) {
-  ${autoSelectors} {${dark}
-  }
+:root {${dark}
 }
 :root {
   --r-sm:   ${r.sm};
@@ -214,7 +203,7 @@ app.get('/theme.css', (req, res) => {
 
 // ── /config.json ────────────────────────────────────────
 app.get('/config.json', (req, res) => {
-  res.json({ blobatarColors: theme.colors.blobatar, fonts: theme.fonts, defaultMode: theme.defaultMode || 'auto' });
+  res.json({ blobatarColors: theme.colors.blobatar, fonts: theme.fonts });
 });
 
 // ── PUBLIC: GET /api/products ────────────────────────────

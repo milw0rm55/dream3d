@@ -496,6 +496,9 @@ body {
 .other-row input[type=text] { flex: 1; min-width: 160px; }
 .calc-gcode { margin-bottom: .5rem; }
 .calc-note { font-size: .78rem; color: var(--text-muted); margin-top: .35rem; }
+.piece-list { list-style: none; margin: .5rem 0 0; padding: 0; }
+.piece-row { display: flex; align-items: center; gap: .75rem; padding: .35rem 0; font-size: .85rem; }
+.piece-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .calc-result {
   position: sticky; top: 0;
   border: 2px solid var(--ink); border-radius: 12px; padding: 1.1rem;

@@ -88,11 +88,10 @@ const App = (() => {
   // ── routes (History API) ──────────────────────
   const ROUTES = {
     home: '/', cart: '/carrito', contact: '/contacto',
-    login: '/entrar', register: '/registro', profile: '/perfil',
     legal: '/aviso-legal', privacy: '/privacidad', cookies: '/cookies', terms: '/condiciones',
   };
   const TITLES = {
-    cart: 'Tu carrito', contact: 'Contacto', login: 'Iniciar sesión', register: 'Crear cuenta', profile: 'Mi perfil',
+    cart: 'Tu carrito', contact: 'Contacto',
     legal: 'Aviso legal', privacy: 'Política de privacidad', cookies: 'Política de cookies', terms: 'Condiciones de venta',
     order: 'Tu pedido', notfound: 'Página no encontrada',
   };
@@ -127,10 +126,6 @@ const App = (() => {
   // opts.history: 'push' (default, user navigation) | 'replace' | 'none' (back/forward)
   function navigate(view, param, opts = {}) {
     const mode = opts.history || 'push';
-
-    if (view === 'profile' && !session.get()) {
-      return navigate('login', null, { history: mode === 'none' ? 'replace' : mode });
-    }
 
     // remember where we were on the page we're leaving, for the back button
     if (mode !== 'none' && history.state) {
@@ -172,19 +167,6 @@ const App = (() => {
         _mount(ContactView.render());
         break;
       }
-      case 'login': {
-        _mount(AuthView.renderLogin());
-        break;
-      }
-      case 'register': {
-        _mount(AuthView.renderRegister());
-        break;
-      }
-      case 'profile': {
-        const html = ProfileView.render(_palette);
-        if (html) _mount(html);
-        break;
-      }
       case 'legal':   _mount(LegalView.aviso()); break;
       case 'privacy': _mount(LegalView.privacidad()); break;
       case 'cookies': _mount(LegalView.cookies()); break;
@@ -209,7 +191,6 @@ const App = (() => {
     // screen readers: announce the new page instead of staying on the clicked link
     if (mode === 'push' && !samePage) _app.focus({ preventScroll: true });
     _syncNavBrand();
-    ThemeMode.refresh();
     if (!samePage) Stats.page(path.split('?')[0]); // never send the order token to analytics
   }
 
@@ -349,7 +330,6 @@ const App = (() => {
         fetch('/api/products').then(r => r.json()),
       ]);
       if (cfg.blobatarColors) _palette = cfg.blobatarColors;
-      if (cfg.defaultMode) ThemeMode.setDefault(cfg.defaultMode);
       PRODUCTS = serverProds;
     } catch (_) { /* no products without the server */ }
     // products created in the admin don't carry these fields

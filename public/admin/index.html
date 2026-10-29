@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Admin · dream3d</title>
-<script src="/js/theme-mode.js"></script>
 <link rel="stylesheet" href="/css/fonts.css">
 <link rel="stylesheet" href="/theme.css">
 <meta name="robots" content="noindex, nofollow">
@@ -60,7 +59,6 @@
         Mensajes <span class="nav-count" id="messagesCount" hidden></span>
       </button>
     </nav>
-    <button class="theme-btn" type="button" data-theme-toggle><span class="theme-icon"></span><span class="theme-text">Tema</span></button>
     <button class="logout-btn" onclick="Admin.logout()">Cerrar sesión</button>
   </aside>
 
@@ -223,8 +221,9 @@
           <div class="calc-inputs" id="calcInputs">
             <fieldset>
               <legend>Impresión</legend>
-              <label class="btn-ghost btn-file calc-gcode">Cargar gcode o 3mf (tiempo y peso)<input type="file" id="gcodeInput" accept=".gcode,.gco,.g,.bgcode,.3mf" hidden></label>
+              <label class="btn-ghost btn-file calc-gcode">Añadir gcode o 3mf de cada pieza<input type="file" id="gcodeInput" accept=".gcode,.gco,.g,.bgcode,.3mf" multiple hidden></label>
               <p class="calc-note" id="gcodeInfo"></p>
+              <ul class="piece-list" id="pieceList"></ul>
               <div class="calc-row">
                 <label>Tiempo <span class="pair"><input type="number" data-k="hours" min="0" step="1"> h <input type="number" data-k="minutes" min="0" max="59" step="1"> min</span></label>
                 <label>Peso del filamento <span class="unit"><input type="number" data-k="weightG" min="0" step="0.1"> g</span></label>

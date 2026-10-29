@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { computePrice, margin } = require('../public/admin/pricing-calc');
+const { computePrice, margin, sumPieces } = require('../public/admin/pricing-calc');
 const defaults = require('../config/pricing');
 
 test('suggested price covers shipping, card fee and VAT, leaving exactly cost + profit', () => {
@@ -18,4 +18,10 @@ test('suggested price covers shipping, card fee and VAT, leaving exactly cost + 
 
 test('shipping alone never suggests a price', () => {
   assert.equal(computePrice({ shipCost: 3.9, cardFeePct: 1.5, cardFeeFixed: 0.25, profitPct: 30 }, []).final, 0);
+});
+
+test('pieces: time and filament are the sum of every printed piece', () => {
+  const t = sumPieces([{ seconds: 3600 + 1800, grams: 10 }, { seconds: 300, grams: 2.5 }]);
+  assert.deepEqual(t, { hours: 1, minutes: 35, weightG: 12.5 });
+  assert.deepEqual(sumPieces([]), { hours: 0, minutes: 0, weightG: 0 });
 });
